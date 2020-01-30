@@ -4,7 +4,7 @@ const inquirer = require("inquirer");
 //Set up PostgreSQL database
 //====================================
 const pg = require("pg");
-const connectionString = "postgres://postgres:Ch1y0Ch02!@localhost:5432/library";
+const connectionString = process.env.connectionString;
 const pgClient = new pg.Client(connectionString);
 pgClient.connect(function (err) {
   if (err) throw err;
