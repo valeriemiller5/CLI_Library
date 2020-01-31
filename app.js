@@ -4,7 +4,7 @@ const inquirer = require("inquirer");
 //Set up PostgreSQL database
 //====================================
 const pg = require("pg");
-const connectionString = process.env.connectionString;
+const connectionString = "postgres://postgres:Ch1y0Ch02!@localhost:5432/library";
 const pgClient = new pg.Client(connectionString);
 pgClient.connect(function (err) {
   if (err) throw err;
@@ -34,7 +34,7 @@ function startProgram() {
         name: "menu",
         type: "rawlist",
         message: chalk.cyan("====== Book Manager ======"),
-        choices: ["View All Books", "Add a Book", "Edit a Book", "Search for a Book", "Save and Exit"],
+        choices: ["View All Books", "Add a Book", "Edit a Book", "Search for a Book", "Remove Book from Library", "Save and Exit"],
       }
     ]).then(function (entry) {
       switch (entry.menu) {
@@ -50,7 +50,11 @@ function startProgram() {
         case "Search for a Book":
           searchBooks();
           break;
+        case "Remove Book from Library":
+          removeBook();
+          break;
         case "Save and Exit":
+          pgClient.end();
           return console.log(chalk.magenta("Thank you for visiting the library!  Please come again soon!"));
       }
     });
@@ -109,7 +113,31 @@ ${results.description[i]}
 };
 
 function addBook() {
-  console.log(chalk.bgGreenBright("Add a book"));
+  console.log(chalk.greenBright("Add a book:"));
+  inquirer
+    .prompt([
+      {
+        name: "addtitle",
+        type: "input",
+        message: "Please enter the title for this book:"
+      },
+      {
+        name: "addauthor",
+        type: "input",
+        message: "Please enter the author of this book:"
+      },
+      {
+        name: "adddescription",
+        type: "input",
+        message: "Please enter the title for this book:"
+      }
+    ]).then(function (entry) {
+      console.log(entry.addtitle + ", " + entry.addauthor + ", " + entry.adddescription);
+      pgClient.query(`INSERT INTO books (title, author, description) VALUES ('${entry.addtitle}', '${entry.addauthor}', '${entry.adddescription}');`, function (err, res) {
+        if (err) throw err;
+        restart();
+      })
+    })
 };
 
 function editBook() {
@@ -118,6 +146,24 @@ function editBook() {
 
 function searchBooks() {
   console.log(chalk.bgYellow("Search for a book"));
+};
+
+function removeBook() {
+  inquirer
+    .prompt([
+      {
+        name: "remove",
+        type: "input",
+        message: chalk.redBright("====== Remove Books ======"),
+        message: ("Enter the ID of the book you wish to remove:")
+      }
+    ]).then(function(response) {
+      console.log(response.remove);
+      pgClient.query(`DELETE FROM books WHERE id = ${response.remove};`, function(err, res) {
+        if (err) throw err;
+        restart();
+      })
+    })
 };
 
 function restart() {

@@ -10,8 +10,8 @@ CREATE TABLE books {
 	PRIMARY KEY(item_id): 
 };
 
-INSERT INTO book (title, author, description) 
+INSERT INTO books (title, author, description) 
 VALUE ("Anne of Green Gables", "Lucy M. Montgomery", "Orphan girl finds a home.");
 
-INSERT INTO book (title, author, description) 
+INSERT INTO books (title, author, description) 
 VALUE ("Metamorphosis", "Franz Kafka", "Man turns in to a bug.");
