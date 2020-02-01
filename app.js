@@ -209,13 +209,14 @@ function editBook() {
 };
 
 function searchBooks() {
-  console.log(chalk.greenBright("Search for a book:"));
+  console.log(chalk.cyanBright("====== Search Books ======"));
+  console.log(chalk.greenBright("Enter one or more key words for the book you are searching for:"));
   inquirer
     .prompt([
       {
         name: "search",
         type: "input",
-        message: "Enter one or more key words for the book you are searching for:"
+        message: "Search:"
       }
     ]).then(function (lookup) {
       // console.log(lookup.search);
@@ -236,12 +237,16 @@ function searchBooks() {
           results.description.push(book.description);
         });
 
+        var found = true;
+
         for (let i = 0; i < results.id.length; i++) {
-          var databaseTitle = results.title[i].split(" ");
-          var lowercaseTitle = results.title[i].toLowerCase().split(" ");
+          let databaseTitle = results.title[i].split(" ");
+          let lowercaseTitle = results.title[i].toLowerCase().split(" ");
+          found = false;
           if (databaseTitle.includes(lookup.search) || lowercaseTitle.includes(lookup.search)) {
             console.log(chalk.cyanBright("The following book(s) match your search. \nFor more information, enter the book ID, or press <enter> to go back to the main menu"));
             console.log(chalk.magenta.bold(`${results.id[i]}: ${results.title[i]}`));
+            found = true;
             inquirer
               .prompt([
                 {
@@ -261,10 +266,16 @@ function searchBooks() {
                 restart();
               })
           } else if (res.keyCode === 13) {
+            found = true;
             restart();
           }
         }
-
+        if (found === false) {
+          setTimeout(function () {
+            console.log(chalk.magenta("Your search could not be found."))
+            restart();
+          }, 30000)
+        }
       })
     })
 };
@@ -302,6 +313,7 @@ function restart() {
         return startProgram();
       } else {
         pgClient.end();
+        console.log(chalk.magenta("Thank you for visiting the library!  Please come again soon!"));
         return false;
       }
     });
