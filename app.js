@@ -288,7 +288,7 @@ function removeBook() {
       {
         name: "remove",
         type: "input",
-        message: chalk.yellowBright("Enter the ID of the book you wish to remove.  If you wish to cancel this request, enter 0:")
+        message: chalk.yellowBright("Enter the ID of the book you wish to remove.  \nIf you wish to cancel this request, enter 0:")
       }
     ]).then(function (response) {
       console.log(response.remove);
