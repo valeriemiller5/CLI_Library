@@ -274,7 +274,7 @@ function searchBooks() {
           setTimeout(function () {
             console.log(chalk.magenta("Your search could not be found."))
             restart();
-          }, 30000)
+          }, 10000)
         }
       })
     })
