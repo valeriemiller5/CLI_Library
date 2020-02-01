@@ -12,20 +12,7 @@ pgClient.connect(function (err) {
 });
 //====================================
 
-//TEST POSTGRESQL CONNECTION
-// function test() {
-//   pgClient.query("SELECT * FROM books", function(err, res) {
-//     if (err) throw err;
-//Index 0 seeder - Anne of Green Gables
-//     console.log(res.rows[0].title);
-//Index 1 seeder - Metamorphosis
-//     console.log(res.rows[1].title);
-//   })
-// }
 
-// test();
-
-// Chalk Test
 console.log(chalk.magentaBright.bold("Welcome to Your Library!"));
 function startProgram() {
   inquirer
@@ -195,7 +182,7 @@ function editBook() {
                         choices: ["title", "author", "description"],
                         message: "Which section would you like to edit?"
                       }
-                    ]).then(function(change) {
+                    ]).then(function (change) {
                       console.log(change.editChoices);
                       inquirer
                         .prompt([
@@ -204,8 +191,8 @@ function editBook() {
                             type: "input",
                             message: "Enter your new changes:"
                           }
-                        ]).then(function(update) {
-                          pgClient.query(`UPDATE books SET ${change.editChoices} = '${update.newChange}' WHERE id = ${results.id[i]};`, function(err, res) {
+                        ]).then(function (update) {
+                          pgClient.query(`UPDATE books SET ${change.editChoices} = '${update.newChange}' WHERE id = ${results.id[i]};`, function (err, res) {
                             if (err) throw err;
                             restart();
                           });
@@ -230,9 +217,9 @@ function searchBooks() {
         type: "input",
         message: "Enter one or more key words for the book you are searching for:"
       }
-    ]).then(function(lookup) {
+    ]).then(function (lookup) {
       // console.log(lookup.search);
-      pgClient.query(`SELECT * FROM books`, function(err, res) {
+      pgClient.query(`SELECT * FROM books`, function (err, res) {
         if (err) throw err;
 
         let results = {
@@ -249,15 +236,32 @@ function searchBooks() {
           results.description.push(book.description);
         });
 
-        for(let i = 0; i < results.id.length; i++) {
-          if(results.title[i].includes(lookup.search) || results.title[i].toLowerCase().includes(lookup.search)) {
-            console.log(chalk.cyanBright("The following books match your search."));
+        for (let i = 0; i < results.id.length; i++) {
+          var databaseTitle = results.title[i].split(" ");
+          var lowercaseTitle = results.title[i].toLowerCase().split(" ");
+          if (databaseTitle.includes(lookup.search) || lowercaseTitle.includes(lookup.search)) {
+            console.log(chalk.cyanBright("The following book(s) match your search. \nFor more information, enter the book ID, or press <enter> to go back to the main menu"));
             console.log(chalk.magenta.bold(`${results.id[i]}: ${results.title[i]}`));
-
-          } else{
-            console.log("Sorry, this book is not in the library.");
+            inquirer
+              .prompt([
+                {
+                  name: "bookid",
+                  type: "input",
+                  message: "Enter book ID:"
+                }
+              ]).then(function (find) {
+                if (find.bookid == results.id[i]) {
+                  console.log(`
+                    ID: ${results.id[i]}
+                    Title: ${results.title[i]}
+                    Author: ${results.author[i]}
+                    Description: ${results.description[i]}
+                  `)
+                }
+                restart();
+              })
+          } else if (res.keyCode === 13) {
             restart();
-            return;
           }
         }
 
