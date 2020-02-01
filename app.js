@@ -1,10 +1,10 @@
-require("dotenv");
+require('dotenv').config();
 const chalk = require("chalk");
 const inquirer = require("inquirer");
 //Set up PostgreSQL database
 //====================================
 const pg = require("pg");
-const connectionString = "postgres://postgres:Ch1y0Ch02!@localhost:5432/library";
+const connectionString = process.env.connectionString;
 const pgClient = new pg.Client(connectionString);
 pgClient.connect(function (err) {
   if (err) throw err;
@@ -223,6 +223,46 @@ function editBook() {
 
 function searchBooks() {
   console.log(chalk.greenBright("Search for a book:"));
+  inquirer
+    .prompt([
+      {
+        name: "search",
+        type: "input",
+        message: "Enter one or more key words for the book you are searching for:"
+      }
+    ]).then(function(lookup) {
+      // console.log(lookup.search);
+      pgClient.query(`SELECT * FROM books`, function(err, res) {
+        if (err) throw err;
+
+        let results = {
+          id: [],
+          title: [],
+          author: [],
+          description: []
+        };
+
+        res.rows.forEach(function (book) {
+          results.id.push(book.id);
+          results.title.push(book.title);
+          results.author.push(book.author);
+          results.description.push(book.description);
+        });
+
+        for(let i = 0; i < results.id.length; i++) {
+          if(results.title[i].includes(lookup.search) || results.title[i].toLowerCase().includes(lookup.search)) {
+            console.log(chalk.cyanBright("The following books match your search."));
+            console.log(chalk.magenta.bold(`${results.id[i]}: ${results.title[i]}`));
+
+          } else{
+            console.log("Sorry, this book is not in the library.");
+            restart();
+            return;
+          }
+        }
+
+      })
+    })
 };
 
 function removeBook() {
