@@ -99,10 +99,10 @@ function startProgram() {
             if (selection.chooseBook === results.title[i]) {
               // console.log(selection.chooseBook);
               console.log(chalk.yellowBright(`==========================
-${results.id[i]}
-${results.title[i]}
-${results.author[i]}
-${results.description[i]}
+ID: ${results.id[i]}
+Title: ${results.title[i]}
+Author: ${results.author[i]}
+Description: ${results.description[i]}
 ==========================`));
             }
           };
@@ -141,25 +141,103 @@ function addBook() {
 };
 
 function editBook() {
-  console.log(chalk.bgBlackBright("Edit existing book"));
+  console.log(chalk.greenBright("Edit existing book:"));
+  inquirer
+    .prompt([
+      {
+        name: "changeBook",
+        type: "input",
+        message: "Enter the ID of the book you would like to update"
+      }
+    ]).then(function (entry) {
+      // console.log(entry.changeBook);
+      pgClient.query("SELECT * FROM books", function (err, res) {
+        if (err) throw err;
+
+        let results = {
+          id: [],
+          title: [],
+          author: [],
+          description: []
+        };
+
+        res.rows.forEach(function (book) {
+          results.id.push(book.id);
+          results.title.push(book.title);
+          results.author.push(book.author);
+          results.description.push(book.description);
+        });
+
+        for (let i = 0; i < results.id.length; i++) {
+          if (entry.changeBook == results.id[i]) {
+            console.log(`
+              ID: ${results.id[i]}
+              Title: ${results.title[i]}
+              Author: ${results.author[i]}
+              Description: ${results.description[i]}
+            `)
+
+            inquirer
+              .prompt([
+                {
+                  name: "edit",
+                  type: "confirm",
+                  message: "Would you like to edit this book?",
+                  default: true
+                }
+              ]).then(function (data) {
+                if (data.edit) {
+                  inquirer
+                    .prompt([
+                      {
+                        name: "editChoices",
+                        type: "list",
+                        choices: ["title", "author", "description"],
+                        message: "Which section would you like to edit?"
+                      }
+                    ]).then(function(change) {
+                      console.log(change.editChoices);
+                      inquirer
+                        .prompt([
+                          {
+                            name: "newChange",
+                            type: "input",
+                            message: "Enter your new changes:"
+                          }
+                        ]).then(function(update) {
+                          pgClient.query(`UPDATE books SET ${change.editChoices} = '${update.newChange}' WHERE id = ${results.id[i]};`, function(err, res) {
+                            if (err) throw err;
+                            restart();
+                          });
+                        })
+                    })
+                } else {
+                  restart();
+                }
+              })
+          }
+        }
+      })
+    })
 };
 
 function searchBooks() {
-  console.log(chalk.bgYellow("Search for a book"));
+  console.log(chalk.greenBright("Search for a book:"));
 };
 
 function removeBook() {
+  console.log(chalk.redBright("Caution: You are about to remove information from the library:"))
+  console.log(chalk.redBright("====== Remove Books ======"))
   inquirer
     .prompt([
       {
         name: "remove",
         type: "input",
-        message: chalk.redBright("====== Remove Books ======"),
-        message: ("Enter the ID of the book you wish to remove:")
+        message: chalk.yellowBright("Enter the ID of the book you wish to remove.  If you wish to cancel this request, enter 0:")
       }
-    ]).then(function(response) {
+    ]).then(function (response) {
       console.log(response.remove);
-      pgClient.query(`DELETE FROM books WHERE id = ${response.remove};`, function(err, res) {
+      pgClient.query(`DELETE FROM books WHERE id = ${response.remove};`, function (err, res) {
         if (err) throw err;
         restart();
       })
